@@ -1,7 +1,6 @@
 #pragma once
+#include "hzpch.h"
 #include "Hazel/Core.h"
-#include <string>
-#include <functional>
 namespace Hazel {
 	/*
 		为了简便，自定义事件是立即处理事件，没有缓冲事件。
