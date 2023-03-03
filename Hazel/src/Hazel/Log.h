@@ -4,7 +4,7 @@
 #include "spdlog/fmt/ostr.h"
 
 namespace Hazel {
-	class HAZEL_API Log{
+	class HAZEL_API Log {
 	public:
 		static void Init();
 		inline static std::shared_ptr<spdlog::logger>& GetCoreLogger() { return s_CoreLogger; }

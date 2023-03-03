@@ -9,6 +9,12 @@ workspace "Hazel"		-- sln文件名
 -- 组成输出目录:Debug-windows-x86_64
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
+-- 包含相对解决方案的目录
+IncludeDir = {}
+IncludeDir["GLFW"] = "Hazel/vendor/GLFW/include"
+
+include "Hazel/vendor/GLFW"
+
 project "Hazel"		--Hazel项目
 	location "Hazel"--在sln所属文件夹下的Hazel文件夹
 	kind "SharedLib"--dll动态库
@@ -28,8 +34,14 @@ project "Hazel"		--Hazel项目
 	-- 包含目录
 	includedirs{
 		"%{prj.name}/src",
-		"%{prj.name}/vendor/spdlog/include"
+		"%{prj.name}/vendor/spdlog/include",
+		"%{IncludeDir.GLFW}"
 	}
+	links { 
+		"GLFW",
+		"opengl32.lib"
+	}
+
 	-- 如果是window系统
 	filter "system:windows"
 		cppdialect "C++17"
@@ -40,7 +52,8 @@ project "Hazel"		--Hazel项目
 		-- 预处理器定义
 		defines{
 			"HZ_PLATFORM_WINDOWS",
-			"HZ_BUILD_DLL"
+			"HZ_BUILD_DLL",
+			"HZ_ENABLE_ASSERTS"
 		}
 		-- 编译好后移动Hazel.dll文件到Sandbox文件夹下
 		postbuildcommands{
