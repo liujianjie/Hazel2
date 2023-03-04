@@ -11,6 +11,16 @@ namespace Hazel {
 		// 1.2Application设置窗口事件的回调函数
 		m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
 	}
+	void Application::PushLayer(Layer* layer)
+	{
+		m_LayerStack.PushLayer(layer);
+	}
+
+	void Application::PushOverlay(Layer* layer)
+	{
+		m_LayerStack.PushOverlay(layer);
+	}
+
 	// 回调glfw窗口事件的函数
 	void Application::OnEvent(Event& e)
 	{
@@ -18,7 +28,13 @@ namespace Hazel {
 		EventDispatcher dispatcher(e);
 		dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(OnWindowClose));
 
-		HZ_CORE_TRACE("{0}", e);
+		// 从后往前顺序处理事件
+		for (auto it = m_LayerStack.end(); it != m_LayerStack.begin(); )
+		{
+			(*--it)->OnEvent(e);
+			if (e.Handled)// 处理完就不要传入前一个层
+				break;
+		}
 	}
 	void Application::Run()
 	{
@@ -26,6 +42,11 @@ namespace Hazel {
 		{
 			glClearColor(1, 0, 1, 1);
 			glClear(GL_COLOR_BUFFER_BIT);
+
+			// 从前往后顺序更新层
+			for (Layer* layer : m_LayerStack)
+				layer->OnUpdate();
+
 			m_Window->OnUpdate();	// 更新glfw
 		}
 	}

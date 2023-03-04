@@ -44,6 +44,8 @@ namespace Hazel {
 		{
 			return GetCategoryFlags() & category;
 		}
+	public:
+		bool Handled = false;
 	protected:
 		bool m_Handled = false;
 	};
@@ -62,7 +64,7 @@ namespace Hazel {
 		{
 			if (m_Event.GetEventType() == T::GetStaticType())	// 拦截的事件和想处理的事件类型是否匹配
 			{
-				m_Event.m_Handled = func(*(T*)&m_Event);		// 处理拦截的事件
+				m_Event.Handled = func(*(T*)&m_Event);		// 处理拦截的事件
 				return true;
 			}
 			return false;
