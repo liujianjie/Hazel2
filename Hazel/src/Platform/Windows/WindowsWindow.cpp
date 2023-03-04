@@ -3,11 +3,16 @@
 #include "Hazel/Events/ApplicationEvent.h"
 #include "Hazel/Events/MouseEvent.h"
 #include "Hazel/Events/KeyEvent.h"
+#include <glad/glad.h>
 
 namespace Hazel {
 
 	static bool s_GLFWInitialized = false;
 
+	static void GLFWErrorCallback(int error, const char* description)
+	{
+		HZ_CORE_ERROR("GLFW Error ({0}): {1}", error, description);
+	}
 	Window* Window::Create(const WindowProps& props)
 	{
 		return new WindowsWindow(props);
@@ -36,6 +41,7 @@ namespace Hazel {
 			// TODO: glfwTerminate on system shutdown
 			int success = glfwInit();
 			HZ_CORE_ASSERT(success, "Could not intialize GLFW!");
+			glfwSetErrorCallback(GLFWErrorCallback);
 
 			s_GLFWInitialized = true;
 		}
@@ -43,6 +49,12 @@ namespace Hazel {
 		m_Window = glfwCreateWindow((int)props.Width, (int)props.Height, m_Data.Title.c_str(), nullptr, nullptr);
 		// 设置glfw当前的上下文
 		glfwMakeContextCurrent(m_Window);
+		// 获取显卡OpenGL函数定义的地址
+		int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+		HZ_CORE_ASSERT(status, "初始化Glad失败");
+		// 测试使用OpenGL函数
+		unsigned int id;
+		glGenBuffers(1, &id);
 		/*
 			设置窗口关联的用户数据指针。这里GLFW仅做存储，不做任何的特殊处理和应用。
 			window表示操作的窗口句柄。
