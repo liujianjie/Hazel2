@@ -58,6 +58,7 @@ namespace Hazel {
 				layer->OnUpdate();
 
 			// 测试：全局输入事件检测
+			auto [x, y] = Input::GetMousePosition();
 			HZ_CORE_TRACE("{0}, {1}", x, y);
 			m_Window->OnUpdate();	// 更新glfw
 		}
