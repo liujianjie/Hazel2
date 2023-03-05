@@ -18,6 +18,10 @@ namespace Hazel {
 		m_Window = std::unique_ptr<Window>(Window::Create());
 		// 1.2Application设置窗口事件的回调函数
 		m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
+
+		// 将ImGui层放在最后
+		m_ImGuiLayer = new ImGuiLayer();
+		PushOverlay(m_ImGuiLayer);
 	}
 	void Application::PushLayer(Layer* layer)
 	{
@@ -56,6 +60,12 @@ namespace Hazel {
 			// 从前往后顺序更新层
 			for (Layer* layer : m_LayerStack)
 				layer->OnUpdate();
+
+			// 从前往后顺序更新层的ImGui
+			m_ImGuiLayer->Begin();
+			for (Layer* layer : m_LayerStack)
+				layer->OnImGuiRender();
+			m_ImGuiLayer->End();
 
 			m_Window->OnUpdate();	// 更新glfw
 		}
