@@ -3,23 +3,19 @@
 
 #include "imgui.h"
 #include "Platform/OpenGL/ImGuiOpenGLRenderer.h"
-#include "GLFW/glfw3.h"
-
 #include "Hazel/Application.h"
 
+#include "GLFW/glfw3.h"
+#include "glad/glad.h"
 namespace Hazel {
 
 	ImGuiLayer::ImGuiLayer()
-		: Layer("ImGuiLayer")
-	{
+		: Layer("ImGuiLayer"){}
+
+	ImGuiLayer::~ImGuiLayer(){
 	}
 
-	ImGuiLayer::~ImGuiLayer()
-	{
-	}
-
-	void ImGuiLayer::OnAttach()
-	{
+	void ImGuiLayer::OnAttach(){
 		ImGui::CreateContext();
 		ImGui::StyleColorsDark();
 
@@ -53,13 +49,11 @@ namespace Hazel {
 		ImGui_ImplOpenGL3_Init("#version 410");
 	}
 
-	void ImGuiLayer::OnDetach()
-	{
+	void ImGuiLayer::OnDetach(){
 
 	}
 
-	void ImGuiLayer::OnUpdate()
-	{
+	void ImGuiLayer::OnUpdate(){
 		ImGuiIO& io = ImGui::GetIO();
 		Application& app = Application::Get();
 		io.DisplaySize = ImVec2(app.GetWindow().GetWidth(), app.GetWindow().GetHeight());
@@ -78,10 +72,75 @@ namespace Hazel {
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	}
+	// 从Application的Event传递过来的事件
+	void ImGuiLayer::OnEvent(Event& event){
+		// 用事件调度器拦截ImGuiLayer想要拦截的事件并用本类函数处理
+		// 最重要的一点是：ImGui拦截了事件并处理后，不标记为处理过了，而是return false标记为没处理，将其传递给前一个层
+		EventDispatcher dispatcher(event);
+		dispatcher.Dispatch<MouseButtonPressedEvent>(HZ_BIND_EVENT_FN(ImGuiLayer::OnMouseButtonPressedEvent));
+		dispatcher.Dispatch<MouseButtonReleasedEvent>(HZ_BIND_EVENT_FN(ImGuiLayer::OnMouseButtonReleasedEvent));
+		dispatcher.Dispatch<MouseMovedEvent>(HZ_BIND_EVENT_FN(ImGuiLayer::OnMouseMovedEvent));
+		dispatcher.Dispatch<MouseScrolledEvent>(HZ_BIND_EVENT_FN(ImGuiLayer::OnMouseScrolledEvent));
+		dispatcher.Dispatch<KeyPressedEvent>(HZ_BIND_EVENT_FN(ImGuiLayer::OnKeyPressedEvent));
+		dispatcher.Dispatch<KeyTypedEvent>(HZ_BIND_EVENT_FN(ImGuiLayer::OnKeyTypedEvent));
+		dispatcher.Dispatch<KeyReleasedEvent>(HZ_BIND_EVENT_FN(ImGuiLayer::OnKeyReleasedEvent));
+		dispatcher.Dispatch<WindowResizeEvent>(HZ_BIND_EVENT_FN(ImGuiLayer::OnWindowResizeEvent));
+	}
+	bool ImGuiLayer::OnMouseButtonPressedEvent(MouseButtonPressedEvent& e){
+		ImGuiIO& io = ImGui::GetIO();
+		io.MouseDown[e.GetMouseButton()] = true;
 
-	void ImGuiLayer::OnEvent(Event& event)
-	{
-
+		return false;// 不标记为处理过了，而是没处理，将其传递给前一个层
+	}
+	bool ImGuiLayer::OnMouseButtonReleasedEvent(MouseButtonReleasedEvent& e){
+		ImGuiIO& io = ImGui::GetIO();
+		io.MouseDown[e.GetMouseButton()] = false;
+		return false;
+	}
+	bool ImGuiLayer::OnMouseMovedEvent(MouseMovedEvent& e){
+		ImGuiIO& io = ImGui::GetIO();
+		io.MousePos = ImVec2(e.GetX(), e.GetY());
+		return false;
+	}
+	bool ImGuiLayer::OnMouseScrolledEvent(MouseScrolledEvent& e){
+		ImGuiIO& io = ImGui::GetIO();
+		io.MouseWheelH += e.GetXOffset();
+		io.MouseWheel += e.GetYOffset();
+		return false;
 	}
 
+	bool ImGuiLayer::OnKeyPressedEvent(KeyPressedEvent& e){
+		ImGuiIO& io = ImGui::GetIO();
+		io.KeysDown[e.GetKeyCode()] = true;
+
+		io.KeyCtrl = io.KeysDown[GLFW_KEY_LEFT_CONTROL] || io.KeysDown[GLFW_KEY_RIGHT_CONTROL];
+		io.KeyShift = io.KeysDown[GLFW_KEY_LEFT_SHIFT] || io.KeysDown[GLFW_KEY_RIGHT_SHIFT];
+		io.KeyAlt = io.KeysDown[GLFW_KEY_LEFT_ALT] || io.KeysDown[GLFW_KEY_RIGHT_ALT];
+		io.KeySuper = io.KeysDown[GLFW_KEY_LEFT_SUPER] || io.KeysDown[GLFW_KEY_RIGHT_SUPER];
+		return false;
+	}
+
+	bool ImGuiLayer::OnKeyReleasedEvent(KeyReleasedEvent& e){
+		ImGuiIO& io = ImGui::GetIO();
+		io.KeysDown[e.GetKeyCode()] = false;
+		return false;
+	}
+
+	bool ImGuiLayer::OnKeyTypedEvent(KeyTypedEvent& e){
+		ImGuiIO& io = ImGui::GetIO();
+		int keycode = e.GetKeyCode();
+		if (keycode > 0 && keycode < 0x10000)
+			io.AddInputCharacter((unsigned short)keycode);
+		return false;
+	}
+
+	bool ImGuiLayer::OnWindowResizeEvent(WindowResizeEvent& e){
+		ImGuiIO& io = ImGui::GetIO();
+		// 设置ImGui的渲染窗口参数
+		io.DisplaySize = ImVec2(e.GetWidth(), e.GetHeight());
+		io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
+		// 告诉OpenGL渲染窗口的尺寸大小
+		glViewport(0, 0, e.GetWidth(), e.GetHeight());
+		return false;
+	}
 }
