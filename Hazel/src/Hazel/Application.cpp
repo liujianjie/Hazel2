@@ -1,6 +1,8 @@
 #include "hzpch.h"
 #include "Application.h"
 #include "Hazel/Log.h"
+#include "Hazel/Input.h"
+
 #include <glad/glad.h>
 namespace Hazel {
 	#define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
@@ -55,6 +57,8 @@ namespace Hazel {
 			for (Layer* layer : m_LayerStack)
 				layer->OnUpdate();
 
+			// 测试：全局输入事件检测
+			HZ_CORE_TRACE("{0}, {1}", x, y);
 			m_Window->OnUpdate();	// 更新glfw
 		}
 	}
