@@ -25,6 +25,7 @@ public:
 	Sandbox()
 	{
 		PushLayer(new ExampleLayer());
+		PushOverlay(new Hazel::ImGuiLayer());// UI层放到最后面显示在屏幕的上方
 	}
 	~Sandbox()
 	{

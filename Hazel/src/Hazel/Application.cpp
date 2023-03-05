@@ -4,8 +4,14 @@
 #include <glad/glad.h>
 namespace Hazel {
 	#define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
+
+	Application* Application::s_Instance = nullptr;
+
 	Application::Application()
 	{
+		HZ_CORE_ASSERT(!s_Instance, "引用已经存在");
+		s_Instance = this;
+
 		// 1.1Application创建窗口
 		m_Window = std::unique_ptr<Window>(Window::Create());
 		// 1.2Application设置窗口事件的回调函数
@@ -14,11 +20,13 @@ namespace Hazel {
 	void Application::PushLayer(Layer* layer)
 	{
 		m_LayerStack.PushLayer(layer);
+		layer->OnAttach();		// Layer层附加时要执行的函数
 	}
 
 	void Application::PushOverlay(Layer* layer)
 	{
 		m_LayerStack.PushOverlay(layer);
+		layer->OnAttach();
 	}
 
 	// 回调glfw窗口事件的函数
