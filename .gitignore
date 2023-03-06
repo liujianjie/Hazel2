@@ -10,6 +10,9 @@ Intermediates/
 *.log
 *.ini
 提交到GitHub.bat
+*.dll
+*.pdb
+**.VC.db
 
 # Visual Studio files and folder
 .vs/

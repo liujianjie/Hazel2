@@ -1,5 +1,6 @@
 #include <Hazel.h>
 #include "imgui/imgui.h"
+
 class ExampleLayer : public Hazel::Layer
 {
 public:
@@ -26,11 +27,11 @@ public:
 		}
 	}
 	// 每个层都可以有自己的UI窗口
-	//virtual void OnImGuiRender() override{
-	//	ImGui::Begin("Test");
-	//	ImGui::Text("Hello World");
-	//	ImGui::End();
-	//}
+	virtual void OnImGuiRender() override{
+		ImGui::Begin("Test");
+		ImGui::Text("Hello World");
+		ImGui::End();
+	}
 };
 class Sandbox : public Hazel::Application
 {
