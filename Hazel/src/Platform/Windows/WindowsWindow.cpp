@@ -3,8 +3,9 @@
 #include "Hazel/Events/ApplicationEvent.h"
 #include "Hazel/Events/MouseEvent.h"
 #include "Hazel/Events/KeyEvent.h"
-#include <glad/glad.h>
+//#include <glad/glad.h>
 
+#include "Platform/OpenGL/OpenGLContext.h"
 namespace Hazel {
 
 	static bool s_GLFWInitialized = false;
@@ -47,14 +48,9 @@ namespace Hazel {
 		}
 		// 2.1window创建窗口
 		m_Window = glfwCreateWindow((int)props.Width, (int)props.Height, m_Data.Title.c_str(), nullptr, nullptr);
-		// 设置glfw当前的上下文
-		glfwMakeContextCurrent(m_Window);
-		// 获取显卡OpenGL函数定义的地址
-		int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-		HZ_CORE_ASSERT(status, "初始化Glad失败");
-		// 测试使用OpenGL函数
-		unsigned int id;
-		glGenBuffers(1, &id);
+		// 创建渲染上下文对象
+		m_Context = new OpenGLContext(m_Window);// m_Context = new D3DContext(m_Window);
+		m_Context->Init();
 		/*
 			设置窗口关联的用户数据指针。这里GLFW仅做存储，不做任何的特殊处理和应用。
 			window表示操作的窗口句柄。
@@ -164,7 +160,7 @@ namespace Hazel {
 	void WindowsWindow::OnUpdate()
 	{
 		glfwPollEvents();			// 轮询事件	
-		glfwSwapBuffers(m_Window);	// 交换缓冲
+		m_Context->SwapBuffers();
 	}
 
 	void WindowsWindow::SetVSync(bool enabled)
