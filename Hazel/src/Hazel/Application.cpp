@@ -2,8 +2,7 @@
 #include "Application.h"
 #include "Hazel/Log.h"
 #include "Hazel/Input.h"
-
-#include <glad/glad.h>
+#include "Hazel/Renderer/Renderer.h"
 namespace Hazel {
 	#define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
 
@@ -159,18 +158,19 @@ namespace Hazel {
 	{
 		while (m_Running)
 		{
-			glClearColor(0.1f, 0.1f, 0.1f, 1);
-			glClear(GL_COLOR_BUFFER_BIT);
+			RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
+			RenderCommand::Clear();
+
+			Renderer::BeginScene();
 			// 绘制四边形
 			m_BlueShader->Bind();// 绑定着色器
-			m_SquareVA->Bind();// 绑定顶点数组对象，并绘制
-			glDrawElements(GL_TRIANGLES, m_SquareVA->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
+			Renderer::Submit(m_SquareVA);
 
 			// 绘制三角形
 			m_Shader->Bind();// 绑定着色器
-			m_VertexArray->Bind();// 绑定顶点数组对象，并绘制
-			glDrawElements(GL_TRIANGLES, m_VertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
+			Renderer::Submit(m_VertexArray);
 
+			Renderer::EndScene();
 			// 从前往后顺序更新层
 			for (Layer* layer : m_LayerStack)
 				layer->OnUpdate();
