@@ -33,19 +33,19 @@ namespace Hazel {
 		unsigned int indices[3] = { 0, 1, 2 }; // 索引数据
 		// 0.生成顶点数组对象VAO、顶点缓冲对象VBO、索引缓冲对象EBO
 		glGenVertexArrays(1, &m_VertexArray);
-		glGenBuffers(1, &m_VertexBuffer);
-		glGenBuffers(1, &m_IndexBuffer);
 		// 1. 绑定顶点数组对象
 		glBindVertexArray(m_VertexArray);
-		// 2. 把我们的CPU的顶点数据复制到GPU顶点缓冲中，供OpenGL使用
-		glBindBuffer(GL_ARRAY_BUFFER, m_VertexBuffer);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-		// 3. 复制我们的CPU的索引数据到GPU索引缓冲中，供OpenGL使用
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IndexBuffer);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-		// 4. 设定顶点属性指针，来解释顶点缓冲中的顶点属性布局
+
+		// 2.1顶点缓冲
+		m_VertexBuffer.reset(VertexBuffer::Create(vertices, sizeof(vertices)));
+
+		// 2.2 设定顶点属性指针，来解释顶点缓冲中的顶点属性布局
 		glEnableVertexAttribArray(0);// 开启glsl的layout = 0输入
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+
+		// 3.索引缓冲
+		m_IndexBuffer.reset(IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
+
 		// 着色器代码
 		std::string vertexSrc = R"(
 			#version 330 core
@@ -107,7 +107,7 @@ namespace Hazel {
 			m_Shader->Bind();
 			// 6.绑定顶点数组对象，并绘制
 			glBindVertexArray(m_VertexArray);
-			glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
+			glDrawElements(GL_TRIANGLES, m_IndexBuffer->GetCount(), GL_UNSIGNED_INT, nullptr);
 
 			// 从前往后顺序更新层
 			for (Layer* layer : m_LayerStack)
