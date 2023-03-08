@@ -13,6 +13,7 @@ Intermediates/
 *.dll
 *.pdb
 **.VC.db
+**.db
 
 # Visual Studio files and folder
 .vs/

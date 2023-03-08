@@ -8,7 +8,7 @@ namespace Hazel {
 
 	Application* Application::s_Instance = nullptr;
 
-	Application::Application()
+	Application::Application() : m_Camera(-1.6f, 1.6f, -0.9f, 0.9f)
 	{
 		HZ_CORE_ASSERT(!s_Instance, "引用已经存在");
 		s_Instance = this;
@@ -55,13 +55,14 @@ namespace Hazel {
 			
 			layout(location = 0) in vec3 a_Position;
 			layout(location = 1) in vec4 a_Color;
+			uniform mat4 u_ViewProjection;
 			out vec3 v_Position;
 			out vec4 v_Color;
 			void main()
 			{
 				v_Position = a_Position;
 				v_Color = a_Color;
-				gl_Position = vec4(a_Position, 1.0);	
+				gl_Position = u_ViewProjection * vec4(a_Position, 1.0);	
 			}
 		)";
 		std::string fragmentSrc = R"(
@@ -109,11 +110,12 @@ namespace Hazel {
 		std::string blueShaderVertexSrc = R"(
 			#version 330 core
 			layout(location = 0) in vec3 a_Position;
+			uniform mat4 u_ViewProjection;
 			out vec3 v_Position;
 			void main()
 			{
 				v_Position = a_Position;
-				gl_Position = vec4(a_Position, 1.0);	
+				gl_Position = u_ViewProjection * vec4(a_Position, 1.0);	
 			}
 		)";
 		std::string blueShaderFragmentSrc = R"(
@@ -160,17 +162,23 @@ namespace Hazel {
 		{
 			RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
 			RenderCommand::Clear();
+			/*
+				5和6指明近和远平面范围
+				glm::ortho(left, right, bottom, top, -1.0f, 1.0f)
+				摄像机位置的z轴位置只要-1~1之间就行
+			*/
+			m_Camera.SetPosition({ 0.5f, 0.5f, -0.9f });
+			m_Camera.SetRotation(45.0f);
 
-			Renderer::BeginScene();
+			Renderer::BeginScene(m_Camera);
 			// 绘制四边形
-			m_BlueShader->Bind();// 绑定着色器
-			Renderer::Submit(m_SquareVA);
+			Renderer::Submit(m_BlueShader, m_SquareVA);
 
 			// 绘制三角形
-			m_Shader->Bind();// 绑定着色器
-			Renderer::Submit(m_VertexArray);
+			Renderer::Submit(m_Shader, m_VertexArray);
 
 			Renderer::EndScene();
+
 			// 从前往后顺序更新层
 			for (Layer* layer : m_LayerStack)
 				layer->OnUpdate();
