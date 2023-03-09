@@ -1,6 +1,7 @@
 #include "hzpch.h"
 #include "Application.h"
 #include "Hazel/Log.h"
+#include <glfw/glfw3.h>
 namespace Hazel {
 	#define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
 
@@ -51,10 +52,14 @@ namespace Hazel {
 	{
 		while (m_Running)
 		{
+			// 计算两帧间隔时间
+			float time = (float)glfwGetTime();// 是从应用开始计算总共的时间
+			Timestep timestep = time - m_LastFrameTime;
+			m_LastFrameTime = time;
 
 			// 从前往后顺序更新层
 			for (Layer* layer : m_LayerStack)
-				layer->OnUpdate();
+				layer->OnUpdate(timestep);
 
 			// 从前往后顺序更新层的ImGui
 			m_ImGuiLayer->Begin();

@@ -162,7 +162,11 @@ namespace Hazel {
 		glfwPollEvents();			// 轮询事件	
 		m_Context->SwapBuffers();
 	}
-
+	/*
+　		开启垂直同步,如果它设定为60Hz（60FPS），那么我们就有60FPS。
+		我们可以通过在glfwSwapInterval方法中设置高于1的数字来降低这个速率（如果设置为2，将得到30FPS）。
+		0：关闭垂直同步 ; 1：144FPS ; 2：72FPS。
+	*/
 	void WindowsWindow::SetVSync(bool enabled)
 	{
 		if (enabled)
